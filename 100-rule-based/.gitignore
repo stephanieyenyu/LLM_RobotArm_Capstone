@@ -1,0 +1,81 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+Recordings/
+
+# Visual Studio / Rider
+.vs/
+.idea/
+*.sln
+*.user
+*.pidb
+*.booproj
+*.svd
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Secrets
+.env
+config.py
+api_key.txt
+secrets.json
+
+# Data / model weights
+*.pt
+*.pth
+*.engine
+*.weights
+*.mp4
+*.avi
+*.mov
+
+# OS
+.DS_Store
+Thumbs.db
+
+csharp_server/bin/
+csharp_server/obj/
+csharp_server/.codex-build*/
+csharp_server/yolo_env/
+csharp_server/outputs/
+csharp_server/open_vocab_env/
+csharp_server/yolo11_env/
+sample_json/visual_result/
+
+# Generated artifacts (regenerated every run)
+sample_json/detected_objects.json
+sample_json/objects_world.json
+sample_json/visual_result.jpg
+unity_project/Assets/StreamingAssets/robot_plan.json
+csharp_server/open_vocab/outputs/objects_open.json
+csharp_server/images/test_scene.jpg
+csharp_server/images/0test_scene.jpg
+
+# Roboflow dataset + training outputs (both huge, both regeneratable)
+csharp_server/pliers_dataset/
+csharp_server/runs/
+
+# Runtime debug outputs from the various detectors
+csharp_server/images/
+
+# Unity <-> csharp_server runtime files (regenerated every run)
+unity_project/Assets/StreamingAssets/current_step.json*
+unity_project/Assets/StreamingAssets/step_done.json*
+unity_project/Assets/StreamingAssets/verification_enabled.txt*
+unity_project/Assets/StreamingAssets/skip_pattern_review.txt*
+unity_project/Assets/StreamingAssets/sim_check.json*
+unity_project/Assets/StreamingAssets/run_mode.json*

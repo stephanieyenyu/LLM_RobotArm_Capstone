@@ -1,0 +1,358 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+// -----------------------------------------------------------------
+// Layer 5：Verifier
+// 每步執行完後拿 perception snapshot 檢查是否放對；
+// 也可以在整個任務完成後對 canonical pattern 做整體驗證。
+//
+// 這是分層架構最重要的一層——沒有它就永遠不知道到底成功沒。
+// -----------------------------------------------------------------
+
+public static class Verifier
+{
+    // 目標位置附近多遠算「有放對」
+    private const double POSITION_TOLERANCE_M = 0.020;    // 2 cm
+
+    // 源位置附近多遠算「還在原地」（沒被夾走）
+    private const double SOURCE_MATCH_M = 0.030;
+
+    // A top-down camera sees the upper block at a slightly shifted image centre,
+    // while the lower block can be fully occluded. Stack verification therefore
+    // uses a wider XY gate and the measured top-surface height.
+    private const double STACK_POSITION_TOLERANCE_M = 0.040;
+    private const double STACK_HEIGHT_TOLERANCE_M = 0.015;
+    // A tall stack's image centre shifts under the oblique camera. Track the
+    // visible tower between the before/after frames instead of requiring both
+    // observations to remain close to the original table-plane XY.
+    private const double STACK_TOWER_SEARCH_M = 0.080;
+    private const double STACK_FRAME_TRACK_M = 0.060;
+    private const double STACK_MIN_HEIGHT_INCREASE_M = 0.008;
+
+    /// <summary>
+    /// 對剛執行完的一步做檢查。
+    /// </summary>
+    public static VerifyResult CheckStep(
+        Assignment step,
+        List<SceneObject> beforeSnapshot,
+        List<SceneObject> afterSnapshot)
+    {
+        var result = new VerifyResult { StepId = step.StepId };
+
+        if (step.Source == null || step.Target == null)
+        {
+            result.OverallStatus = "abort";
+            result.Note = "Assignment 缺 source 或 target";
+            return result;
+        }
+
+        // 1. Source 是否從補貨區消失？
+        var sourceMatch = afterSnapshot.FirstOrDefault(o =>
+            o.Name == step.Source.Name
+            && Distance2D(o.X, o.Y, step.Source.X, step.Source.Y) < SOURCE_MATCH_M);
+        result.SourceRemoved = (sourceMatch == null);
+
+        // 2. Target 位置是否出現對應形狀 + 顏色的 piece？
+        string expectedName = $"{step.Target.ExpectedColor}_{step.Target.ExpectedShape}";
+        var atTarget = afterSnapshot
+            .Where(o => Distance2D(o.X, o.Y, step.Target.WorldX, step.Target.WorldY) < POSITION_TOLERANCE_M)
+            .OrderBy(o => Distance2D(o.X, o.Y, step.Target.WorldX, step.Target.WorldY))
+            .FirstOrDefault();
+
+        if (atTarget != null)
+        {
+            result.TargetOccupied = true;
+            result.ShapeMatch = atTarget.Shape == step.Target.ExpectedShape;
+            result.ColorMatch = atTarget.Name.Contains(step.Target.ExpectedColor);
+            result.PositionErrorMm = Distance2D(atTarget.X, atTarget.Y,
+                                                 step.Target.WorldX, step.Target.WorldY) * 1000.0;
+            if (step.Target.ExpectedShape == "domino")
+            {
+                result.OrientationErrorDeg = Math.Abs(atTarget.SkewDeg);
+            }
+        }
+
+        // 3. 綜合判定
+        if (!result.SourceRemoved && !result.TargetOccupied)
+        {
+            result.OverallStatus = "retry";                          // 沒夾到、可再試一次
+            result.Note = "沒夾到 cube，可能沒有真的抓到";
+        }
+        else if (result.SourceRemoved && !result.TargetOccupied)
+        {
+            result.OverallStatus = "retry";
+            result.Note = "夾走了但目標位置沒東西——可能中途掉了";
+        }
+        else if (result.TargetOccupied && !result.ShapeMatch)
+        {
+            result.OverallStatus = "abort";
+            result.Note = $"目標位置有東西但形狀不對（期望 {step.Target.ExpectedShape}、實際 {atTarget?.Shape})";
+        }
+        else if (result.TargetOccupied && !result.ColorMatch)
+        {
+            result.OverallStatus = "abort";
+            result.Note = "目標位置有東西但顏色不對";
+        }
+        else if (result.TargetOccupied && result.PositionErrorMm > 15.0)
+        {
+            result.OverallStatus = "retry";
+            result.Note = $"放到目標區但偏移 {result.PositionErrorMm:F1} mm，可重試微調";
+        }
+        else if (result.TargetOccupied)
+        {
+            result.OverallStatus = "ok";
+            result.Note = $"位置準確（偏移 {result.PositionErrorMm:F1} mm）";
+        }
+        else
+        {
+            result.OverallStatus = "replan";
+            result.Note = "狀況不明，重新規劃";
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// 對完整 pattern 做整體驗證：多少格對、多少格錯。
+    /// </summary>
+    public static List<(TargetCell target, bool matched)> CheckOverall(
+        List<TargetCell> allTargets,
+        List<SceneObject> snapshot)
+    {
+        var results = new List<(TargetCell, bool)>();
+        foreach (var t in allTargets)
+        {
+            bool matched = snapshot.Any(o =>
+                Distance2D(o.X, o.Y, t.WorldX, t.WorldY) < POSITION_TOLERANCE_M
+                && o.Shape == t.ExpectedShape
+                && o.Name.Contains(t.ExpectedColor));
+            results.Add((t, matched));
+        }
+        return results;
+    }
+
+    /// <summary>
+    /// Verifies move_relative and stack. Unlike pattern verification, this selects the
+    /// moved object's identity at the destination so the lower stack object is not
+    /// mistaken for the placed object.
+    /// </summary>
+    public static VerifyResult CheckSingleObjectStep(
+        Assignment step,
+        List<SceneObject> beforeSnapshot,
+        List<SceneObject> afterSnapshot,
+        bool requireStackHeight)
+    {
+        var result = new VerifyResult { StepId = step.StepId };
+        if (step.Source == null || step.Target == null)
+        {
+            result.OverallStatus = "abort";
+            result.Note = "Single-object assignment is missing source or target.";
+            return result;
+        }
+
+        var sourceStillThere = afterSnapshot.Any(o =>
+            o.Name == step.Source.Name &&
+            Distance2D(o.X, o.Y, step.Source.X, step.Source.Y) < SOURCE_MATCH_M);
+        result.SourceRemoved = !sourceStillThere;
+
+        double targetTolerance = requireStackHeight
+            ? STACK_POSITION_TOLERANCE_M
+            : POSITION_TOLERANCE_M;
+
+        var movedAtTarget = afterSnapshot
+            .Where(o => o.Name == step.Source.Name)
+            .Where(o => Distance2D(o.X, o.Y, step.Target.WorldX, step.Target.WorldY)
+                        < targetTolerance)
+            .OrderBy(o => Distance2D(o.X, o.Y, step.Target.WorldX, step.Target.WorldY))
+            .ThenBy(o => Math.Abs(o.Z - step.Target.WorldZ))
+            .FirstOrDefault();
+
+        // When stacked, YOLO may label only one visible box because the lower
+        // object is hidden. An object at the stack XY whose top surface reaches
+        // the expected combined height is sufficient geometric evidence. Prefer
+        // the source identity when it is visible; otherwise use the elevated box.
+        SceneObject? stackHeightEvidence = null;
+        SceneObject? mergedStackSilhouetteEvidence = null;
+        SceneObject? trackedHeightIncreaseEvidence = null;
+        if (requireStackHeight)
+        {
+            stackHeightEvidence = afterSnapshot
+                .Where(o => Distance2D(o.X, o.Y, step.Target.WorldX, step.Target.WorldY)
+                            < STACK_POSITION_TOLERANCE_M)
+                .Where(o => Math.Abs(o.Z - step.Target.WorldZ)
+                            <= STACK_HEIGHT_TOLERANCE_M)
+                .OrderBy(o => o.Name == step.Source.Name ? 0 : 1)
+                .ThenBy(o => Math.Abs(o.Z - step.Target.WorldZ))
+                .FirstOrDefault();
+
+            // First locate the visible tower in the pre-motion frame. For a
+            // second/third layer its measured XY can be displaced from the
+            // fixed tower axis by perspective. Then follow that same visible
+            // tower into the post-motion frame and require an actual Z rise.
+            SceneObject? beforeTower = beforeSnapshot
+                .Where(o => Distance2D(o.X, o.Y,
+                                      step.Target.WorldX, step.Target.WorldY)
+                            < STACK_TOWER_SEARCH_M)
+                .Where(o => Distance2D(o.X, o.Y,
+                                      step.Source.X, step.Source.Y)
+                            >= SOURCE_MATCH_M)
+                .OrderByDescending(o => o.Z)
+                .FirstOrDefault();
+            if (result.SourceRemoved && beforeTower != null)
+            {
+                trackedHeightIncreaseEvidence = afterSnapshot
+                    .Where(o => o.Name.Contains(step.Target.ExpectedColor))
+                    .Where(o => Distance2D(o.X, o.Y,
+                                          beforeTower.X, beforeTower.Y)
+                                < STACK_FRAME_TRACK_M)
+                    .Where(o => o.Z >= beforeTower.Z + STACK_MIN_HEIGHT_INCREASE_M)
+                    .OrderByDescending(o => o.Z)
+                    .FirstOrDefault();
+            }
+
+            // Two vertically stacked cubes can merge into one long HSV contour
+            // and be labelled as a domino. In that case RealSense may also keep
+            // reporting roughly one-layer Z. If the picked cube disappeared and
+            // a same-colour domino silhouette remains on the fixed tower axis,
+            // treat that contour as occlusion evidence for the stack. This rule
+            // is stack-only and never changes normal pattern/move verification.
+            if (result.SourceRemoved)
+            {
+                mergedStackSilhouetteEvidence = afterSnapshot
+                    .Where(o => Distance2D(o.X, o.Y,
+                                          step.Target.WorldX, step.Target.WorldY)
+                                < STACK_POSITION_TOLERANCE_M)
+                    .Where(o => o.Shape == "domino")
+                    .Where(o => o.Name.Contains(step.Target.ExpectedColor))
+                    .OrderBy(o => Distance2D(o.X, o.Y,
+                                             step.Target.WorldX, step.Target.WorldY))
+                    .FirstOrDefault();
+            }
+            movedAtTarget ??= stackHeightEvidence ?? trackedHeightIncreaseEvidence ??
+                              mergedStackSilhouetteEvidence;
+        }
+
+        if (movedAtTarget != null)
+        {
+            result.TargetOccupied = true;
+            bool inferredOccludedStack = requireStackHeight &&
+                (stackHeightEvidence != null || trackedHeightIncreaseEvidence != null ||
+                 mergedStackSilhouetteEvidence != null);
+            result.ShapeMatch = inferredOccludedStack ||
+                                movedAtTarget.Shape == step.Target.ExpectedShape;
+            result.ColorMatch = inferredOccludedStack ||
+                                movedAtTarget.Name.Contains(step.Target.ExpectedColor);
+            result.PositionErrorMm = Distance2D(
+                movedAtTarget.X, movedAtTarget.Y, step.Target.WorldX, step.Target.WorldY) * 1000.0;
+            result.OrientationErrorDeg = Math.Abs(movedAtTarget.SkewDeg);
+        }
+
+        bool heightMatches = !requireStackHeight || stackHeightEvidence != null ||
+                             trackedHeightIncreaseEvidence != null ||
+                             mergedStackSilhouetteEvidence != null;
+
+        bool sourceAndTargetOverlap = Distance2D(
+            step.Source.X, step.Source.Y, step.Target.WorldX, step.Target.WorldY) <= SOURCE_MATCH_M;
+
+        if (result.TargetOccupied && result.ShapeMatch && result.ColorMatch && heightMatches &&
+            (result.SourceRemoved || (!requireStackHeight && sourceAndTargetOverlap)))
+        {
+            result.OverallStatus = "ok";
+            result.Note = requireStackHeight
+                ? trackedHeightIncreaseEvidence != null && stackHeightEvidence == null
+                    ? $"Stack verified by frame-to-frame tower tracking: top Z increased to " +
+                      $"{trackedHeightIncreaseEvidence.Z:F3} m; tracked XY shift " +
+                      $"{Distance2D(trackedHeightIncreaseEvidence.X, trackedHeightIncreaseEvidence.Y, step.Target.WorldX, step.Target.WorldY) * 1000.0:F1} mm."
+                : mergedStackSilhouetteEvidence != null && stackHeightEvidence == null
+                    ? $"Stack inferred from source removal and merged same-colour domino silhouette; " +
+                      $"XY error {result.PositionErrorMm:F1} mm. Commanded tower height remains cumulative."
+                    : $"Stack verified from visible top/elevated height; lower object may be occluded. " +
+                      $"XY error {result.PositionErrorMm:F1} mm, top Z {movedAtTarget!.Z:F3} m."
+                : !result.SourceRemoved
+                    ? $"Near-target placement verified in overlapping source/target area; XY error {result.PositionErrorMm:F1} mm."
+                    : $"Relative move verified; XY error {result.PositionErrorMm:F1} mm.";
+        }
+        else if (!result.SourceRemoved && !result.TargetOccupied)
+        {
+            result.OverallStatus = "retry";
+            result.Note = "Source object did not move and destination is empty.";
+        }
+        else if (result.SourceRemoved && !result.TargetOccupied)
+        {
+            result.OverallStatus = "abort";
+            result.Note = "Source disappeared but the expected object was not found; manual recovery is required.";
+        }
+        else if (result.TargetOccupied && !heightMatches)
+        {
+            result.OverallStatus = "retry";
+            result.Note = $"Object reached stack XY but height is incorrect " +
+                          $"(actual {movedAtTarget!.Z:F3}, expected {step.Target.WorldZ:F3} m).";
+        }
+        else
+        {
+            result.OverallStatus = "replan";
+            result.Note = "Scene changed unexpectedly; obtain a new scene and replan.";
+        }
+
+        return result;
+    }
+
+    public static VerifyResult CheckHoldingStep(
+        Assignment step, List<SceneObject> beforeSnapshot, List<SceneObject> afterSnapshot)
+    {
+        var result = new VerifyResult { StepId = step.StepId };
+        if (step.Source == null)
+        {
+            result.OverallStatus = "abort";
+            result.Note = "Holding assignment is missing source.";
+            return result;
+        }
+        result.SourceRemoved = !afterSnapshot.Any(o => o.Name == step.Source.Name &&
+            Distance2D(o.X, o.Y, step.Source.X, step.Source.Y) < SOURCE_MATCH_M);
+        int beforeCount = beforeSnapshot.Count(o => o.Name == step.Source.Name);
+        int afterCount = afterSnapshot.Count(o => o.Name == step.Source.Name);
+        var elevated = afterSnapshot.Where(o => o.Name == step.Source.Name)
+            .Where(o => o.Z >= step.Source.Z + 0.020).OrderByDescending(o => o.Z).FirstOrDefault();
+        bool countDropped = afterCount < beforeCount;
+        if (result.SourceRemoved && (countDropped || elevated != null))
+        {
+            result.OverallStatus = "ok";
+            result.TargetOccupied = elevated != null;
+            result.ShapeMatch = true;
+            result.ColorMatch = true;
+            result.Note = elevated != null
+                ? $"Holding verified by source removal and elevated observation at Z={elevated.Z:F3} m."
+                : "Holding provisionally verified by source removal and object-count decrease; global visual validation remains required.";
+        }
+        else
+        {
+            result.OverallStatus = "retry";
+            result.Note = "No sufficient evidence that the selected source was lifted and remains held.";
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// A batch that only repositions the arm has no object-state outcome to
+    /// verify.  Record successful execution without pretending that the source
+    /// should already have moved or that the goal has been completed.  The
+    /// independent global validator still decides whether the user's goal is met.
+    /// </summary>
+    public static VerifyResult CheckExecutionOnly(Assignment step)
+    {
+        return new VerifyResult
+        {
+            StepId = step.StepId,
+            OverallStatus = "ok",
+            Note = "本批動作未形成可觀測的夾取或放置結果；僅確認執行器已完成，任務結果交由整體驗證判定。"
+        };
+    }
+
+    private static double Distance2D(double x1, double y1, double x2, double y2)
+    {
+        double dx = x1 - x2;
+        double dy = y1 - y2;
+        return Math.Sqrt(dx * dx + dy * dy);
+    }
+}
