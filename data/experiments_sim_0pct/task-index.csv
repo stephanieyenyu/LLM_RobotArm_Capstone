@@ -1,0 +1,13 @@
+task_folder_utc,task_text,sim_scene,attempt_folders,attempts_with_result,result
+20261001_121442_05c7daa9097f45bfb6d0141de60777ff,把黃色積木排成L,sim_scenes/letter_blocks.json,2,1,no result.json
+20261001_122338_329a80d0a6ba4e9fa73610cf5cf0afb4,把黃色積木排成L,sim_scenes/letter_blocks.json,2,1,no result.json
+20261001_123358_4635da8164b747d6adb79562a5b19220,把黃色積木排成L,sim_scenes/letter_blocks.json,2,1,no result.json
+20261001_124521_333c4bac57d347008e3c3271e1bc9680,把積木排成L,sim_scenes/letter_blocks.json,1,0,no result.json
+20261001_124553_299ec99a7dd84a6c9ba994bd6660fd2d,把積木排成L,sim_scenes/letter_blocks.json,5,4,no result.json
+20261001_125708_449ba2649ecc4be7b3a17cf812b09335,把黃色積木排成X,sim_scenes/letter_blocks.json,7,6,no result.json
+20261001_132102_e4d46070ea3046f6a29af8d63890d3c8,把積木排成X,sim_scenes/letter_blocks.json,3,2,no result.json
+20261001_141234_8f412908003e46d79aec2c1776b76463,霸積木排成X,sim_scenes/letter_blocks.json,7,6,no result.json
+20261007_024837_4543a3d3068b41db926a77126f13dc94,把積木排成M,sim_scenes/letter_blocks.json,3,2,no result.json
+20261007_040425_03ba63f9ce9d47e498129478d7415a02,把積木排成N,sim_scenes/letter_blocks.json,4,3,no result.json
+20261007_044524_58ec6162795c4b32adbee23ed35a9a45,把積木排成P,sim_scenes/letter_blocks.json,1,0,no result.json
+20261007_051002_713ea108e9db42108ad4b8487de30d71,把積木排成P,sim_scenes/letter_blocks.json,2,1,no result.json

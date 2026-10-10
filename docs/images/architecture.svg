@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" width="900" height="430" role="img" aria-labelledby="t d">
+  <title id="t">System pipeline shared by the three variants</title>
+  <desc id="d">An instruction and a camera snapshot reach the planner, which calls the language models. The plan passes pre-execution checks and a simulation. Only if every check passes does the Unity executor send it to the UR3e arm. A failed check returns control to the planner without moving the arm.</desc>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#6b7280"/>
+    </marker>
+    <style>
+      .box { fill: #f3f4f6; stroke: #6b7280; stroke-width: 1.5; }
+      .key { fill: #e0ecff; stroke: #3b6fd4; stroke-width: 1.5; }
+      .t { font: 14px "Segoe UI", Helvetica, Arial, sans-serif; fill: #111827; text-anchor: middle; }
+      .s { font: 12px "Segoe UI", Helvetica, Arial, sans-serif; fill: #374151; text-anchor: middle; }
+      .l { font: 12px "Segoe UI", Helvetica, Arial, sans-serif; fill: #6b7280; text-anchor: middle; }
+      .ln { stroke: #6b7280; stroke-width: 1.6; fill: none; }
+      .dash { stroke: #6b7280; stroke-width: 1.6; fill: none; stroke-dasharray: 6 5; }
+    </style>
+  </defs>
+
+  <!-- row 1 -->
+  <rect class="box" x="20" y="90" width="150" height="70" rx="6"/>
+  <text class="t" x="95" y="120">Instruction</text>
+  <text class="s" x="95" y="140">Unity UI</text>
+
+  <rect class="key" x="230" y="90" width="190" height="70" rx="6"/>
+  <text class="t" x="325" y="116">Planner (C#)</text>
+  <text class="s" x="325" y="136">variant sets how much</text>
+  <text class="s" x="325" y="151">the model writes</text>
+
+  <rect class="box" x="480" y="90" width="150" height="70" rx="6"/>
+  <text class="t" x="555" y="120">Pre-execution</text>
+  <text class="t" x="555" y="140">checks</text>
+
+  <rect class="box" x="690" y="90" width="190" height="70" rx="6"/>
+  <text class="t" x="785" y="112">Simulation</text>
+  <text class="s" x="785" y="131">2D: Unity preview</text>
+  <text class="s" x="785" y="147">3D: URSim + Isaac Sim</text>
+
+  <!-- row 2 -->
+  <rect class="box" x="20" y="250" width="150" height="70" rx="6"/>
+  <text class="t" x="95" y="276">Perception server</text>
+  <text class="s" x="95" y="296">RealSense, YOLO11,</text>
+  <text class="s" x="95" y="311">ArUco</text>
+
+  <rect class="box" x="230" y="250" width="190" height="70" rx="6"/>
+  <text class="t" x="325" y="280">OpenAI gpt-5</text>
+  <text class="t" x="325" y="300">Gemini</text>
+
+  <rect class="box" x="690" y="250" width="190" height="70" rx="6"/>
+  <text class="t" x="785" y="276">Unity executor</text>
+  <text class="s" x="785" y="296">URScript, port 30002</text>
+
+  <!-- row 3 -->
+  <rect class="box" x="690" y="360" width="190" height="52" rx="6"/>
+  <text class="t" x="785" y="391">UR3e arm</text>
+
+  <!-- arrows -->
+  <path class="ln" d="M170 125 H228" marker-end="url(#a)"/>
+  <path class="ln" d="M420 125 H478" marker-end="url(#a)"/>
+  <path class="ln" d="M630 125 H688" marker-end="url(#a)"/>
+  <path class="ln" d="M325 250 V162" marker-start="url(#a)" marker-end="url(#a)"/>
+  <path class="ln" d="M170 285 H200 Q215 285 215 270 V180 Q215 160 235 160" marker-end="url(#a)"/>
+  <text class="l" x="112" y="238">scene, read once</text>
+  <path class="ln" d="M785 160 V248" marker-end="url(#a)"/>
+  <text class="l" x="843" y="204">all checks pass</text>
+  <path class="ln" d="M785 320 V358" marker-end="url(#a)"/>
+  <path class="dash" d="M735 90 V50 H345 V88" marker-end="url(#a)"/>
+  <text class="l" x="540" y="42">any check fails: the arm does not move</text>
+</svg>
