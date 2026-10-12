@@ -17,7 +17,7 @@ folders listed under Sources.
 
 | Source | What it contains |
 |---|---|
-| Original repository on GitHub | Searched for tracked output files; the three branches used here are `main`, `claude/zero-constraint-bitmap-coverage` and `rulebased_version` |
+| Original repository on GitHub | Searched for tracked output files; the three branches used here are `main`, `zero-constraint-bitmap-coverage` and `rulebased_version` |
 | Working copy `LLM_RobotArm/csharp_server/outputs/experiments` | 11 real-arm task folders (2026-09-29 to 2026-10-01), 5 `result.json`, one `metrics.json`, about 20 MB |
 | Working copy `zero constraint LLM/zero constraint LLM/csharp_server/outputs/experiments_sim` | 12 pure-simulation task folders of the 0% variant (2026-10-01 and 2026-10-07), 802 files |
 | Working copy `LLM_RobotArm/csharp_server/outputs` (top level) | 13 earlier-planner files from 2026-07-04 to 2026-09-17 |

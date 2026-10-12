@@ -84,7 +84,7 @@ gives the same tree, `4c1747ffa736fe84c0f8b5d4b67a7b13ab470c55`, for all three.
 **Verified.** The content of each folder in this repository is identical to the tip of its source
 branch. Compared by tree object: `git rev-parse HEAD:50-partial-constraint` gives
 `cdcd5214c8f59a8de50184e8fb71bd6020b58c82`, the tree of `origin/main`; the folder
-`0-zero-constraint` gives `d25b6aa…` for `claude/zero-constraint-bitmap-coverage` and
+`0-zero-constraint` gives `d25b6aa…` for `zero-constraint-bitmap-coverage` and
 `100-rule-based` gives `7f85128…` for `rulebased_version`.
 
 **Assessment.** No file content was changed when the three branches were put into one repository.
