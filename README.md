@@ -41,6 +41,8 @@ in infrastructure errors and simulation trials that were stopped by hand with no
 *Instruction issued → verification gate enabled → simulation-only planning → batch verified
 against the expected bitmap → physical execution → 12 / 12 placed correctly.*
 
+[Full demo (17 min)](https://youtu.be/buLcFnzc7SU) · [Short demo (29 sec)](https://youtu.be/hMH1wXtTpaM)
+
 ---
 
 ## What it does
