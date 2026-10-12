@@ -34,10 +34,12 @@ completed success-rate comparison. The records that are available show real-arm 
 in infrastructure errors and simulation trials that were stopped by hand with no success, and
 `docs/metrics.md` says so number by number.
 
-![System pipeline shared by the three variants](docs/images/architecture.svg)
+---
 
-*An instruction is read once together with a camera snapshot, planned by the model at the
-variant's level of constraint, checked in simulation, and only then sent to the arm.*
+![Fully-constrained variant forming the letter Q](docs/images/demo.gif)
+
+*Instruction issued → verification gate enabled → simulation-only planning → batch verified
+against the expected bitmap → physical execution → 12 / 12 placed correctly.*
 
 ---
 
@@ -252,6 +254,11 @@ moves.
 ---
 
 ## System Architecture
+
+![System pipeline shared by the three variants](docs/images/architecture.svg)
+
+*An instruction is read once together with a camera snapshot, planned by the model at the
+variant's level of constraint, checked in simulation, and only then sent to the arm.*
 
 There are no hosted services and no deployment target. Five processes run on one workstation
 and hand work to each other through HTTP, files and the UR controller's sockets.
