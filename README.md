@@ -38,10 +38,16 @@ in infrastructure errors and simulation trials that were stopped by hand with no
 
 ![Fully-constrained variant forming the letter Q](docs/images/demo.gif)
 
-*Instruction issued → verification gate enabled → simulation-only planning → batch verified
+*2D — Instruction issued → verification gate enabled → simulation-only planning → batch verified
 against the expected bitmap → physical execution → 12 / 12 placed correctly.*
 
 [2D full demo (17 min)](https://youtu.be/buLcFnzc7SU) · [2D short demo (29 sec)](https://youtu.be/hMH1wXtTpaM)
+
+![Fully-constrained variant stacking a voxel U](docs/images/demo-3d.gif)
+
+*3D — Previous run halted by a UR safety stop → new instruction, verification gate enabled →
+plan executed in URSim only → Isaac Sim overlap 97% against a 90% threshold → gate passed →
+physical execution → voxel U formed.*
 
 ---
 
@@ -523,7 +529,10 @@ variant.
 │   ├── metrics.md                     Every number in this README, with the command that gives it
 │   ├── known-issues.md                Issues classified by what has and has not been verified
 │   ├── diagrams/architecture.mmd      Editable source of the pipeline figure
-│   └── images/architecture.svg        Rendered pipeline figure
+│   └── images/
+│       ├── architecture.svg           Rendered pipeline figure
+│       ├── demo.gif                   2D run, letter Q
+│       └── demo-3d.gif                3D run, voxel U
 ├── 0-zero-constraint/                 Model supplies TCP poses; independent attempts, no limit
 ├── 50-partial-constraint/             Model writes text; adapter translates; up to 10 attempts with reflection
 ├── 100-rule-based/                    Router and code compute coordinates; model orders functions; one run
