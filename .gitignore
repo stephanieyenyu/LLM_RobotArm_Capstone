@@ -1,0 +1,49 @@
+# Secrets
+.env
+*.env
+!.env.example
+api_key.txt
+secrets.json
+
+# Run outputs: large and regenerated. The five exported result files live in data/experiments/.
+**/csharp_server/outputs/
+**/sample_json/visual_result/
+
+# Model weights and local environments (see docs/known-issues.md, C-2)
+*.pt
+*.pth
+*.engine
+*.weights
+**/csharp_server/yolo11_env/
+**/csharp_server/yolo_env/
+**/csharp_server/open_vocab_env/
+.venv/
+venv/
+
+# Build output (see docs/known-issues.md, C-1)
+**/csharp_server/bin/
+**/csharp_server/obj/
+**/tests/**/bin/
+**/tests/**/obj/
+
+# Unity
+**/unity_project/[Ll]ibrary/
+**/unity_project/[Tt]emp/
+**/unity_project/[Oo]bj/
+**/unity_project/[Bb]uilds/
+**/unity_project/[Ll]ogs/
+**/unity_project/[Uu]ser[Ss]ettings/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Editors and OS
+.vs/
+.idea/
+*.user
+*.sln
+.DS_Store
+Thumbs.db
+

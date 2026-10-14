@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "status": "infrastructure_error",
+  "attempts": 0,
+  "counts_toward_success_rate": false,
+  "final_rules": [],
+  "finished_utc": "2026-09-29T02:30:14.8135684Z"
+}

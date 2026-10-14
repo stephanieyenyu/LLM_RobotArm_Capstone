@@ -1,0 +1,12 @@
+task_folder_utc,task_text,attempt_folders,result_status
+20260929_023011_d504393b55a243c8b347919130c94e05,把黃色積木排成C,0,infrastructure_error
+20260929_023449_16db75fe9e8f490cb826bc86a9378734,把黃色積木排成C,4,no result.json
+20260929_025340_03c61caac62b44119e83f730ec6865eb,把黃色積木排成C,2,no result.json
+20260929_030552_3377d780742d4db094993529534d4ef8,把黃色積木在擺放區排成C,5,no result.json
+20260929_042440_c2c93b2ddf4d427d81105be224bcb21b,把黃色積木在擺放區排成C,0,no result.json
+20260930_045335_ac98ecaab1fe484dae927fa3f9943099,使用 5 顆黃色方塊，在擺放區排成英文字母 L。 直邊使用 3 顆，底邊使用 3 顆，轉角共用一顆。 相鄰方塊中心間距為 3 公分。,0,no result.json
+20260930_045846_389eec415148422ba706517007402644,使用 5 顆黃色方塊，在擺放區排成英文字母 L。 直邊使用 3 顆，底邊使用 3 顆，轉角共用一顆。 相鄰方塊中心間距為 3 公分。,2,infrastructure_error
+20260930_052002_521b440e7b0e4274867cb4f3bad4dc48,使用 5 顆黃色方塊，在擺放區排成英文字母 L。 直邊使用 3 顆，底邊使用 3 顆，轉角共用一顆。 相鄰方塊中心間距為 3 公分。,4,no result.json
+20261001_053242_7b013cccf16940679abc507c3bcb5b58,把積木在擺放去排成L,1,infrastructure_error
+20261001_054533_6d810c72066846da8108e3c6e2329b2a,在擺放區擺成L,2,infrastructure_error
+20261001_055255_6fe7c2e4cd7d4276bf3339b85119a3b5,把積木在擺放區排成L,6,infrastructure_error

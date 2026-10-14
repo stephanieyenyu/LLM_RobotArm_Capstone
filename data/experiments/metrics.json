@@ -1,0 +1,53 @@
+{
+  "total_trials": 5,
+  "valid_trials": 0,
+  "infrastructure_errors": 5,
+  "adapter_errors": 0,
+  "execution_unknown": 0,
+  "success_rate_within_10": null,
+  "first_attempt_success_rate": null,
+  "mean_attempts_among_successes": null,
+  "cumulative_success_rates": [
+    {
+      "attempt": 1,
+      "success_rate": null
+    },
+    {
+      "attempt": 2,
+      "success_rate": null
+    },
+    {
+      "attempt": 3,
+      "success_rate": null
+    },
+    {
+      "attempt": 4,
+      "success_rate": null
+    },
+    {
+      "attempt": 5,
+      "success_rate": null
+    },
+    {
+      "attempt": 6,
+      "success_rate": null
+    },
+    {
+      "attempt": 7,
+      "success_rate": null
+    },
+    {
+      "attempt": 8,
+      "success_rate": null
+    },
+    {
+      "attempt": 9,
+      "success_rate": null
+    },
+    {
+      "attempt": 10,
+      "success_rate": null
+    }
+  ],
+  "evaluation": "independent_visual_model; requires human calibration"
+}

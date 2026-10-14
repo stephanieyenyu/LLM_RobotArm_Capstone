@@ -1,0 +1,16 @@
+{
+  "model": "gpt-5",
+  "max_attempts": null,
+  "unbounded_attempts": true,
+  "reflection": false,
+  "reset_between_tasks": false,
+  "initial_scene_source": "sim_scene_file",
+  "run_mode": "sim",
+  "sim_scene": "sim_scenes/letter_blocks.json",
+  "reset_within_task": false,
+  "reset_xy_m": 0.015,
+  "reset_z_m": 0.01,
+  "rule_scope": "none",
+  "evaluation": "independent_visual_model",
+  "started_utc": "2026-10-01T13:21:03.089815Z"
+}

@@ -1,0 +1,10 @@
+flowchart LR
+    UI["Instruction<br/>(Unity UI)"] --> PL["Planner (C#)<br/>variant sets how much<br/>the model writes"]
+    CAM["RealSense D435i"] --> PS["Perception server<br/>YOLO11 + ArUco"]
+    PS -- "scene, read once" --> PL
+    PL <--> LLM["OpenAI gpt-5 /<br/>Gemini"]
+    PL --> CHK["Pre-execution<br/>checks"]
+    CHK --> SIM["Simulation<br/>2D: Unity preview<br/>3D: URSim + Isaac Sim"]
+    SIM -- "all checks pass" --> EX["Unity executor<br/>URScript, port 30002"]
+    EX --> ARM["UR3e"]
+    SIM -. "any check fails:<br/>arm does not move" .-> PL
