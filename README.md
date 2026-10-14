@@ -49,6 +49,8 @@ against the expected bitmap → physical execution → 12 / 12 placed correctly.
 plan executed in URSim only → Isaac Sim overlap 97% against a 90% threshold → gate passed →
 physical execution → voxel U formed.*
 
+[3D full demo (14 min)](https://youtu.be/30E0dqxI1-I) · [3D short demo (25 sec)](https://youtu.be/zQCj7X2O9cc)
+
 ---
 
 ## What it does
