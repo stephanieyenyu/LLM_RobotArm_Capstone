@@ -46,7 +46,7 @@ Snapshot 2026-10-10 · 11 real-arm and 12 simulation task folders · 89 finished
 **Check.** All blobs reachable from `main` under 3,000,000 bytes were searched for OpenAI-style
 keys (`sk-…`), GitHub tokens (`gh?_…`, `github_pat_…`), Google API keys (`AIza…`), AWS key ids,
 private-key headers, and assignments such as `api_key = "…"` with a value of 16 or more
-characters. There were no matches among 1,501 blobs.
+characters. There were no matches among 1,511 blobs.
 
 **Verified.** A one-off script run before publication, on 2026-10-10. A command with the same
 patterns, slow on a large repository, is
