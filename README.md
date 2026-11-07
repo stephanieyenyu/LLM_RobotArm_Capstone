@@ -115,11 +115,9 @@ folder, excluding `bin/`, `obj/` and the Unity `Library/` folder; the commands a
 tasks and 65 attempts are the task and attempt folders found on the owner's computer; the
 census of every record, with the commands that count them, is in `docs/metrics.md`.
 
-Development ran from May to October 2026, and this repository was assembled on 2026-10-10.
+Development ran since May 2026 until now, and this repository was assembled on 2026-10-10.
 
-The work was done by a team of six. The repository does not record who was responsible for which
-module, so no per-module attribution is made. Results and design decisions described below are
-the team's; the experiment records are from runs the team performed.
+The work was done by a team of four. The repository does not record who was responsible for which module, so no per-module attribution is made. Results and design decisions described below are the team's; the experiment records are from runs the team performed.
 
 ---
 
@@ -578,7 +576,7 @@ nothing.
 
 ## Author
 
-林彥妤, repository owner, member of a six-person capstone team,
+林彥妤, repository owner, member of a four-person capstone team,
 2026-05-21 to 2026-10-08, with this repository assembled on 2026-10-10. The repository gathers the
 team's work from three branches of the original project repository into one place, with each
 variant's history kept.
