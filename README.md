@@ -60,7 +60,7 @@ streams 1920 by 1080 colour at 15 frames per second to a Python perception serve
 black cubes and dominoes are found by colour (HSV) and shape, ArUco markers QR1 to QR4 give the
 workbench frame, and YOLO11n serves a whitelist of seven everyday objects. Block positions come
 from a ray onto the plane at the 2.5 cm cube height, with height from the depth image, refreshed
-every 0.2 s over a 5-frame window. Since 2026-10-10 the 50% variant's server aims that ray at the
+every 0.2 s over a 5-frame window. Since 2026-10-10 the self-feedback iteration variant's server aims that ray at the
 centre of the block's top face, correcting for the side face the tilted camera also sees (7 to
 12 mm, measured), reads the height there as a median of 8 frames, and builds the workbench frame
 from the median of the last 50 frames; the 0% and 100% copies still use the centre of the whole
@@ -73,13 +73,13 @@ other's drawing, and the survivors are scored 80% / 20% in favour of OpenAI, for
 rounds. For a stacked figure the same procedure draws a height map of one row by three
 columns by three layers. A switch in Unity turns the review off, in which case OpenAI draws the
 figure once. How the figure is used differs by variant: it scores the result (0%), it must match
-the plan cell for cell (50%), or it is mapped to coordinates by code (100%).
+the plan cell for cell (self-feedback iteration), or it is mapped to coordinates by code (100%).
 
 **Gives the planner a different share of the decisions in each variant.** In the 0% variant a
 decomposition call and a planning call write text, and a third call turns it into JSON in which
 the model supplies the source block, the target and a full TCP pose (position and rotation) for
 every move; the joint angles are solved by Unity's own kinematics for flat figures and by URSim
-for stacked ones. In the 50% variant the model writes the plan as text
+for stacked ones. In the self-feedback iteration variant the model writes the plan as text
 and a deterministic adapter reads the source index, the target coordinates and six function
 names from it. In the 100% variant a router classifies the instruction into four actions, code
 chooses sources and computes every coordinate, and the model only orders a whitelist of robot
@@ -94,14 +94,14 @@ Isaac Sim follows with physics, and must also pass checks on lift, position, lay
 knocked neighbours, stability, fingertip contact with the table, arm self-collision and
 completeness of the URSim data. Any failure leaves the real arm where it was.
 
-**Treats a failed attempt differently in each variant.** The 50% variant allows up to ten
+**Treats a failed attempt differently in each variant.** The self-feedback iteration variant allows up to ten
 attempts. After each failure the model writes a summary and provisional rules that are carried
 into the next system prompt; its first reflection line is either `CONTINUE` or `GIVE_UP`. The 0%
 variant makes every attempt independent, with no reflection and no attempt limit. The 100%
-variant runs once per instruction and stops at the first failed check. In the 0% and 50%
+variant runs once per instruction and stops at the first failed check. In the 0% and self-feedback iteration
 variants an arm failure part-way through ends the task.
 
-**Writes down every attempt in two of the three variants.** The 0% and 50% variants give each
+**Writes down every attempt in two of the three variants.** The 0% and self-feedback iteration variants give each
 task a folder with the prompts sent, the model text, the translated plan, scenes, images, token
 usage and a `result.json`, and update a `metrics.json`. The 100% variant writes no result or
 metrics file, only per-command folders of simulation images, so no success rate can be computed
@@ -111,7 +111,7 @@ from it. This record is the reason the negative results in this document can be 
 
 ## Scope
 
-| Component | 0% zero-constraint | 50% partial-constraint | 100% rule-based |
+| Component | 0% zero-constraint | self-feedback iteration partial-constraint | 100% rule-based |
 |---|---|---|---|
 | Planner and verification (C#, `csharp_server/*.cs`) | 21 files, 4,764 lines | 21 files, 4,890 lines | 20 files, 5,780 lines |
 | Perception server (Python, `csharp_server/*.py`) | 1 file | 1 file | 1 file |
@@ -144,7 +144,7 @@ the team's; the experiment records are from runs the team performed.
 **Setup.** One UR3e arm (or URSim, the Universal Robots simulator), a parallel gripper that
 opens 3.5 cm between the finger faces, an Intel RealSense D435i, and a white workbench with
 four ArUco markers at its corners. The objects are yellow cubes of 25 mm side and yellow
-dominoes of 50 by 25 by 25 mm. Planning uses gpt-5 by default in the 0% and 50% variants
+dominoes of 50 by 25 by 25 mm. Planning uses gpt-5 by default in the 0% and self-feedback iteration variants
 (`ROBOT_MODEL` overrides it); the 100% variant uses gpt-5 without an override. Target figures use
 OpenAI and Gemini (`gemini-3.1-flash-lite` by default). Pure-simulation runs use one of two scene
 files: `yellow_cubes_15` (15 cubes, 5 columns by 3 rows, 6 cm apart) or `domino_cube` (one
@@ -158,7 +158,7 @@ What follows describes only the records found on the owner's computer, which wer
 not how many experiments were run. Formal experiment tasks, each one instruction taken through the planner with
 its own folder, number 23 with 65 attempts: eleven real-arm task folders from 2026-09-29 to
 2026-10-01 that ask for the letter C or L in a placement zone, produced by an earlier snapshot of
-the 0% and 50% code whose prompt defined a placement zone (removed on 2026-10-01), and twelve
+the 0% and self-feedback iteration code whose prompt defined a placement zone (removed on 2026-10-01), and twelve
 pure-simulation task folders of the 0% variant, from 2026-10-01 and 2026-10-07, that ask for L,
 X, M, N or P on a scene file that has since been removed. Before those, the earlier planner left
 the files of 89 finished commands (456 pick-and-place steps, 4 batches and 106 saved bitmap
@@ -167,7 +167,7 @@ steps whose ids carry no date. Among these records no controlled run compares th
 on the same tasks, and the GitHub repository holds none of the run folders. Nobody outside the team
 took part, and no human rated any model verdict.
 
-**Success.** In the 0% and 50% variants a task succeeds when the pre-execution checks accept the
+**Success.** In the 0% and self-feedback iteration variants a task succeeds when the pre-execution checks accept the
 plan, the simulation passes both its overlap test (strictly above 90%) and the model's PASS, and
 the arm then completes the batch. The primary metric in the code is tasks that succeeded within
 ten attempts divided by tasks that ended as `success` or `failed`, reported with first-attempt
@@ -205,16 +205,16 @@ states that these verdicts are not calibrated against human labels.
 | Physical outcome after simulated pass | not measured | No post-execution check since 2026-10-08 |
 | Planning or execution latency | not measured | No latency analysis was carried out |
 | Offline checks passing, 0% variant | 89 of 89 | Observed (program output, 2026-10-10) |
-| Offline checks passing, 50% variant | 94 of 94 | Observed (program output, 2026-10-10) |
+| Offline checks passing, self-feedback iteration variant | 94 of 94 | Observed (program output, 2026-10-10) |
 | Offline checks, 100% variant | not applicable | No test project exists |
 | Overlap pass threshold | strictly above 90% | Test parameter (read from code) |
 | Alignment tolerance for 3D overlap | 5 mm | Test parameter (read from code) |
-| Maximum attempts, 50% variant | 10 | Test parameter (read from code) |
+| Maximum attempts, self-feedback iteration variant | 10 | Test parameter (read from code) |
 | Maximum attempts, 0% variant | unlimited | Test parameter (read from code) |
 | Isaac Sim landing offset | about 2 mm | Reported in a code comment; raw data not stored |
 | Overlap of a correct placement, unaligned | about 85% | Reported in the protocol; raw data not stored |
 | Gripper opening | 3.5 cm | Reported in code and protocol (measured 2026-09-30); raw data not stored |
-| Constraint level (0%, 50%, 100%) | labels | Design labels, not computed quantities |
+| Constraint level (0%, self-feedback iteration, 100%) | labels | Design labels, not computed quantities |
 
 **The records here are a small part of the experiments run.** The team ran many more experiments
 than these records show, on computers whose files the owner cannot reach. The counts in this
@@ -233,7 +233,7 @@ results across those changes should not be compared.
 
 **The constraint percentages are labels.** They order the variants by how many planning
 decisions code fixes, but no count of decisions or share of the pipeline was computed, and the
-50% variant is not half-way between the others in any measured sense.
+self-feedback iteration variant is not half-way between the others in any measured sense.
 
 **Model verdicts are not human-calibrated.** Both the target figure and the PASS decision come
 from models. The protocol states that they require manual audit before formal use.
@@ -291,7 +291,7 @@ The cost of the split is that coordination is by polling files and by starting p
 the right order. There is no transaction around a task: if the planner exits between writing a
 batch and Unity reading it, the two disagree and nothing reconciles them. Unity discards a stale
 command file when it starts, but a batch written while no Unity is running waits. The planner
-waits for a batch result without a timeout in the 0% and 50% variants. `start_real_robot.bat`
+waits for a batch result without a timeout in the 0% and self-feedback iteration variants. `start_real_robot.bat`
 opens three of the windows for the real-robot case but contains a machine-specific Isaac Sim
 path and arm address (known issue C-3), and the diagrams and per-variant data flow are in
 `docs/architecture.md`.
@@ -331,7 +331,7 @@ of up to 5 mm is forgiven by construction. The 90% threshold itself was chosen, 
 
 ### Translate plans deterministically and reject what cannot be read, because a dropped block misled the reflection
 
-In the 50% variant the model writes plain text and a deterministic adapter turns the explicit
+In the self-feedback iteration variant the model writes plain text and a deterministic adapter turns the explicit
 source index, numeric target and function calls into execution data, without calling another
 model. Until 2026-10-07 the adapter read only the last block of the plan. A plan with nine
 pick-and-place pairs written as nine blocks was translated as one, and the reflection step
@@ -343,13 +343,13 @@ A plan that lacks an explicit source, a numeric target or a function call is a t
 failure and uses one attempt. Limits of 50 operations per batch and 20 functions per operation
 are enforced but not stated in the prompts. The 0% variant makes the opposite choice: its third
 call is a model that completes missing decisions from the goal and the scene. The accepted cost
-in the 50% variant is that each translation failure consumes one of the ten attempts, and that
+in the self-feedback iteration variant is that each translation failure consumes one of the ten attempts, and that
 text matching only the six whitelisted function names is silently ignored, so a `go_home` in the
 plan never runs and the executed plan can differ from the written one (known issue C-4).
 
 ### Check the plan's figure against a figure drawn by two models, because a plan can be consistent and still be the wrong letter
 
-In the 50% variant a model call first decides whether the instruction means a flat or a stacked
+In the self-feedback iteration variant a model call first decides whether the instruction means a flat or a stacked
 figure, with no keyword rules, and the two-model procedure draws the figure before planning.
 After translation, the figure the plan would produce is rebuilt from its own coordinates, both
 figures are trimmed of empty border rows and columns, and they must be identical cell for cell,
@@ -403,7 +403,7 @@ before 2026-10-10 also used the deeper grasp, so they are not comparable with la
 | Attempts that succeeded | 0 | 0 |
 | Success rate within ten attempts | not measured | not measured |
 
-The offline checks pass 89 of 89 (0% variant) and 94 of 94 (50% variant).
+The offline checks pass 89 of 89 (0% variant) and 94 of 94 (self-feedback iteration variant).
 
 The experiment record available here is small, and the experiments the team ran are far more
 numerous than it shows (about 500, by the owner's estimate). The available record is as
@@ -448,7 +448,7 @@ succeeds.
 **External validity: one arm, one gripper, one object type.** Everything here concerns a UR3e
 with a 3.5 cm gripper, 25 mm cubes and 50 mm dominoes on one bench with four markers. The
 reach band, the finger geometry and the layer height are properties of that setup. The reach
-limits even differ inside the project: the 0% and 50% executors accept sources 0.20 to 0.42 m
+limits even differ inside the project: the 0% and self-feedback iteration executors accept sources 0.20 to 0.42 m
 from the arm base, the 100% executor 0.10 to 0.47 m. Nothing shows that the conclusions, or the
 90% threshold, transfer to other arms, objects or layouts.
 
@@ -459,7 +459,7 @@ context and not in model. The score measures agreement with a bitmap that a mode
 a wrong target figure passes if the plan reproduces it. No human rated either call, and the
 percentage labels for the variants do not correspond to a measured quantity.
 
-**Internal validity: the variants differ in several mechanisms at once.** The 0% and 50%
+**Internal validity: the variants differ in several mechanisms at once.** The 0% and self-feedback iteration
 variants also differ in attempt limit, reflection, whether the figure must match the plan, the
 planning output format and who solves the arm's inverse kinematics. The 100% variant differs
 again in its router, its code-computed layout and its lack of any retry. A difference in
@@ -498,7 +498,7 @@ paired with physical outcomes: no trial passed the gate. What is needed is blind
 of the simulated images and a count of agreement, then the same images set against what the
 arm actually did, and a judge that is a different model from the planner.
 
-**Which constraint explains a difference between the variants?** The 0%, 50% and 100%
+**Which constraint explains a difference between the variants?** The 0%, self-feedback iteration and 100%
 variants differ in several mechanisms together, so a comparison could not say whether
 reflection, the cell-for-cell match, the deterministic adapter, the model-solved TCP poses or
 the code-computed layout produced a result. The records cannot support a single-factor claim
@@ -543,7 +543,7 @@ variant.
     ├── unity_project/                 Scene, UI, kinematic preview, joint-target executor, arm models
     ├── isaac_sim/                     Isaac Sim twin server, calibration scripts, early prototypes
     ├── sim_scenes/                    Pure-simulation scene files and camera pose
-    ├── tests/ExperimentChecks/        Offline checks (0% and 50% variants only)
+    ├── tests/ExperimentChecks/        Offline checks (0% and self-feedback iteration variants only)
     └── docs/                          Protocol and architecture notes in Chinese
 ```
 
