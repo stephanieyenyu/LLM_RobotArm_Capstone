@@ -1,34 +1,18 @@
 # LLM_RobotArm — Comparing Three Levels of Planner Constraint for Natural-Language Control of a UR3e Arm
 
-LLM_RobotArm turns a Chinese natural-language instruction, such as "arrange the yellow blocks
-into the letter L", into a verified pick-and-place program for a Universal Robots UR3e arm.
-It was built as a capstone project (專題) by a team of six between May and October 2026, in the laboratory
-setting of one workbench with one arm, one camera and a handful of yellow blocks. The people who use it are the team itself; there are no external
-users and no deployment.
+LLM_RobotArm turns a Chinese natural-language instruction, such as "arrange the yellow blocks into the letter L", into a verified pick-and-place program for a Universal Robots UR3e arm.
+It was built as a capstone project (專題) by a team of four since May 2026 until now, in the laboratory setting of one workbench with one arm, one camera and a handful of yellow blocks. The people who use it are the team itself; there are no external users and no deployment.
 
 Calling a language model is not the hard part. The model returns fluent text for any
 instruction, and fluent text is not a trajectory. Three things took the work.
 
-**Deciding where the model stops and code starts.** A planner that writes every pose can
-attempt any task and fails on reach limits and collisions; a planner that only fills in a
-fixed template never fails that way but can only do what the template anticipated. The project
-builds the same system three times, at three levels of constraint, so the choice can be
-examined instead of assumed.
+**Deciding where the model stops and code starts.** A planner that writes every pose can attempt any task and fails on reach limits and collisions; a planner that only fills in a fixed template never fails that way but can only do what the template anticipated. The project builds the same system three times, at three levels of constraint, so the choice can be examined instead of assumed.
 
-**Checking a plan before the arm moves.** A failed attempt on the real arm changes the table,
-and the next attempt starts from a different problem. Every variant therefore verifies a
-whole batch in simulation first (Unity for flat figures, URSim and Isaac Sim for stacked
-ones) and moves the arm only if the batch passes.
+**Checking a plan before the arm moves.** A failed attempt on the real arm changes the table, and the next attempt starts from a different problem. Every variant therefore verifies a whole batch in simulation first (Unity for flat figures, URSim and Isaac Sim for stacked ones) and moves the arm only if the batch passes.
 
-**Keeping the arm's real geometry honest.** The gripper opens 3.5 cm, not the 7 cm the
-simulation first assumed; the fingers are 15 mm square, not the 21 by 20 mm of the asset
-model; a descent that is a few millimetres too deep crushes the block underneath. Much of
-the work of the project was these corrections.
+**Keeping the arm's real geometry honest.** The gripper opens 3.5 cm, not the 7 cm the simulation first assumed; the fingers are 15 mm square, not the 21 by 20 mm of the asset model; a descent that is a few millimetres too deep crushes the block underneath. Much of the work of the project was these corrections.
 
-This repository contains the three variants, their shared verification flow, the offline
-checks that pass, and an export and census of every recorded run that exists: 23 experiment
-tasks with 65 attempts, and 89 finished commands of the earlier planner. These are a small part
-of the experiments the team ran: the owner estimates about 500, run together on several
+This repository contains the three variants, their shared verification flow, the offline checks that pass, and an export and census of every recorded run that exists: 23 experiment tasks with 65 attempts, and 89 finished commands of the earlier planner. These are a small part of the experiments the team ran: the owner estimates about 500, run together on several
 computers, whose records the owner cannot reach. The repository therefore does not contain a
 completed success-rate comparison. The records that are available show real-arm trials that ended
 in infrastructure errors and simulation trials that were stopped by hand with no success, and
